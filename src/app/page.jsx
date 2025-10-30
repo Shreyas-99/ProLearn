@@ -4,20 +4,27 @@ import Footer from '@/components/Footer';
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
-
+import { auth } from '@clerk/nextjs/server';
 
 export default async function LandingPage() {
   
   const user = await currentUser();
+console.log("Current User on Landing Page:", user);
+
+//  const { userId } = auth();// not getting userId but the logic using in the navbar working properly
+        // console.log("User ID on Landing Page^^^^^^^^^^^^^:", userId);
+
+
+  // console.log("Current User on Landing Page:", user);
   if (user) {
     redirect('/home');
   }
-
+       
   return (
     
     <div className="min-h-screen bg-black text-white overflow-hidden">
 
-      <Navbar />
+      <Navbar user={user} />
 
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6 relative">

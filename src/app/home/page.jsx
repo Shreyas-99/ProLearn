@@ -7,25 +7,38 @@ import HistoryFooter from '@/components/HistoryFooter';
 import HistoryCard from '@/components/HistoryCard';
 import RecommendationCard from '@/components/RecommendationCard';
 
-import { redirect } from "next/navigation";
-import { getAuth } from "@clerk/nextjs/server";
-import { SignedOut } from '@clerk/nextjs'
+import { useUser } from '@clerk/nextjs';
 import RecommendationHeader from '@/components/RecommendationHeader';
-
+import { useRouter } from 'next/navigation';
 
 
 
 
 export default  function page() {
+  const router = useRouter();
 
-//   useEffect(async() => {
-    
-//     const { userId } =  await getAuth(); // works on server
-//    if (!userId) redirect("/"); 
+  const  {isSignedIn,user,isLoaded}  = useUser();
 
- 
-  
-// }, [])
+  // console.log("User ID fetched in Home Page", user);// --------  working
+  if (isSignedIn) {
+    console.log("user SIGNED IN");
+  }
+  useEffect(() => {
+    if (isSignedIn) {
+      // Sync the user to your MongoDB after successful sign-in
+      fetch("api/users/sync", { method: "POST" });
+      router.push("/home"); // redirect manually as backup
+    }
+  }, [isSignedIn, router]);
+
+const [userOb, setuserOb] = useState('')
+useEffect(() => {
+    if (isLoaded && user) {
+      setuserOb(user);
+    }
+  }, [isLoaded, user]);
+
+
 
 
   const [selectedFilter, setSelectedFilter] = useState('all');
@@ -116,8 +129,8 @@ export default  function page() {
   return (
     
     <div className="  min-h-screen  bg-black text-white">
-      
-      <Navbar />
+
+      <Navbar  />
 
       <div className="flex h-screen">
         {/* Left Sidebar - History */}
