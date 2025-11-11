@@ -1,5 +1,5 @@
 'use client';
-
+import { nanoid } from "nanoid";
 import React, { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import { Clock, Bookmark, TrendingUp, Filter, Search, Star, ExternalLink, ChevronRight, Zap, Users, Target, Play, CheckCircle, AlertCircle } from 'lucide-react';
@@ -15,14 +15,41 @@ import { useRouter } from 'next/navigation';
 
 
 export default  function page() {
+  const [allRecommendations, setAllRecommendations] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [bookmarkedProjects, setBookmarkedProjects] = useState([]);
+  const [recommendations, setRecommendations] = useState([]);
   const router = useRouter();
 
   const  {isSignedIn,user,isLoaded}  = useUser();
 
+
+
   // console.log("User ID fetched in Home Page", user);// --------  working
   if (isSignedIn) {
+
     console.log("user SIGNED IN");
   }
+ 
+  
+
+  const filterFunction = (filter) => {
+  setSelectedFilter(filter);
+
+  if (filter === "all") {
+    // show everything again
+    setRecommendations(allRecommendations);
+  } else {
+    const regex = new RegExp(`^${filter}$`, "i"); // case-insensitive
+    const filtered = allRecommendations.filter((project) =>
+      regex.test(project.difficulty)
+    );
+    setRecommendations(filtered);
+  }
+};
+
   useEffect(() => {
     if (isSignedIn) {
       // Sync the user to your MongoDB after successful sign-in
@@ -32,6 +59,8 @@ export default  function page() {
   }, [isSignedIn, router]);
 
 const [userOb, setuserOb] = useState('')
+
+
 useEffect(() => {
     if (isLoaded && user) {
       setuserOb(user);
@@ -41,71 +70,94 @@ useEffect(() => {
 
 
 
-  const [selectedFilter, setSelectedFilter] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [bookmarkedProjects, setBookmarkedProjects] = useState([]);
+
+const handleLoadMore = async () => {
+    const topic = searchQuery.trim();
+    if (!topic) allRecommendations;
+
+    setLoading(true);
+    const res = await fetch("/api/project-recommendation", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ topic }),
+    });
+    const projects = await res.json();
+    
+    const data = projects?.map(project => ({
+      ...project,
+      id: nanoid(12),
+    }));
+    
+    setAllRecommendations((prev) => {
+  const combined = [...prev, ...data];
+  const unique = Array.from(
+    new Map(
+      combined.map((p) => [p.title.toLowerCase(), p])
+    ).values()
+  );
+  return unique;
+});
+    setRecommendations((prev) => {
+  const combined = [...prev, ...data];
+  const unique = Array.from(
+    new Map(
+      combined.map((p) => [p.title.toLowerCase(), p])
+    ).values()
+  );
+  return unique;
+});
+  
+    setLoading(false);
+  };
+
+  
+ const handleSearch = async () => {
+    const topic = searchQuery.trim();
+    if (!topic) return;
+
+    setLoading(true);
+    const res = await fetch("/api/project-recommendation", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ topic }),
+    });
+    const projects = await res.json();
+    console.log(" ROW Projects from API:", projects);
+
+    if (!Array.isArray(projects)) {
+  console.error("Error fetching projects:", projects.error || projects);
+  setLoading(false);
+  return;
+}
+
+    const data = projects?.map(project => ({
+      ...project,
+      id: nanoid(12),
+    }));
+    console.log("Received Recommendations:", data);
+    setRecommendations(data);
+    setAllRecommendations(data);
+    setLoading(false);
+  };
+
+
 
   const historyItems = [
-    { id: 1, title: "Weather Dashboard App", tech: "React, API", progress: 100, date: "2 days ago", rating: 5, status: "completed" },
-    { id: 2, title: "E-commerce Cart System", tech: "Next.js, Stripe", progress: 75, date: "5 days ago", rating: 4, status: "in-progress" },
-    { id: 3, title: "Task Management Tool", tech: "Vue.js, Firebase", progress: 100, date: "1 week ago", rating: 5, status: "completed" },
-    { id: 4, title: "Portfolio Website", tech: "HTML, CSS, JS", progress: 100, date: "2 weeks ago", rating: 4, status: "completed" },
-    { id: 5, title: "Blog CMS Platform", tech: "Node.js, MongoDB", progress: 60, date: "3 weeks ago", rating: 3, status: "in-progress" },
-    { id: 6, title: "REST API Server", tech: "Express, PostgreSQL", progress: 100, date: "1 month ago", rating: 5, status: "completed" }
+    { id: 1, title: "Weather Dashboard App", tech: "React, API", progress: 100, date: "2 days ago", rating: 5, isCompleted: true },
   ];
 
-  const recommendations = [
-    {
-      id: 1,
-      title: "Real-Time Chat Application",
-      description: "Build a modern chat app with WebSocket integration, user authentication, and real-time messaging capabilities. Learn about socket programming and state management.",
-      difficulty: "Intermediate",
-      duration: "4-6 weeks",
-      match: 98,
-      tags: ["React", "Socket.io", "Node.js", "MongoDB"],
-      learningPoints: ["WebSocket Protocol", "Real-time Data", "User Authentication"]
-    },
-    {
-      id: 2,
-      title: "AI-Powered Recipe Finder",
-      description: "Create an intelligent recipe recommendation system using machine learning. Integrate with food APIs and implement smart search functionality.",
-      difficulty: "Advanced",
-      duration: "6-8 weeks",
-      match: 95,
-      tags: ["Python", "TensorFlow", "FastAPI", "React"],
-      learningPoints: ["Machine Learning", "API Integration", "Data Processing"]
-    },
-    {
-      id: 3,
-      title: "Social Media Dashboard",
-      description: "Develop a comprehensive analytics dashboard for social media metrics. Visualize data with interactive charts and real-time updates.",
-      difficulty: "Intermediate",
-      duration: "3-5 weeks",
-      match: 92,
-      tags: ["Vue.js", "Chart.js", "Express", "MySQL"],
-      learningPoints: ["Data Visualization", "REST APIs", "Database Design"]
-    },
-    {
-      id: 4,
-      title: "Mobile Fitness Tracker",
-      description: "Build a cross-platform fitness tracking app with workout logging, progress tracking, and personalized recommendations.",
-      difficulty: "Intermediate",
-      duration: "5-7 weeks",
-      match: 89,
-      tags: ["React Native", "Firebase", "Redux", "Health API"],
-      learningPoints: ["Mobile Development", "Cloud Storage", "Push Notifications"]
-    },
-    {
-      id: 5,
-      title: "Blockchain Voting System",
-      description: "Create a secure and transparent voting platform using blockchain technology. Implement smart contracts and decentralized storage.",
-      difficulty: "Advanced",
-      duration: "8-10 weeks",
-      match: 86,
-      tags: ["Solidity", "Ethereum", "Web3.js", "React"],
-      learningPoints: ["Blockchain", "Smart Contracts", "Cryptography"]
-    }
-  ];
+  // const recommendations = [
+  //   {
+  //     id: 1,
+  //     title: "Real-Time Chat Application",
+  //     description: "Build a modern chat app with WebSocket integration, user authentication, and real-time messaging capabilities. Learn about socket programming and state management.",
+  //     difficulty: "Intermediate",
+  //     duration: "4-6 weeks",
+  //     match: 98,
+  //     tags: ["React", "Socket.io", "Node.js", "MongoDB"],
+  //     learningPoints: ["WebSocket Protocol", "Real-time Data", "User Authentication"]
+  //   },
+  // ];
 
   const toggleBookmark = (projectId) => {
     setBookmarkedProjects(prev => 
@@ -126,13 +178,25 @@ useEffect(() => {
     }
   };
 
+
+
+
+ 
+
+
   return (
     
-    <div className="  min-h-screen  bg-black text-white">
+    <div className="  min-h-screen  bg-black text-white  ">
 
       <Navbar  />
 
-      <div className="flex h-screen">
+     {loading?<div>
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-20 w-20 border-t-4 border-b-4 border-purple-500"></div>
+
+      </div>
+     </div> 
+     :<div className="flex h-screen">
         {/* Left Sidebar - History */}
         <div className="w-80 border-r border-gray-800 flex flex-col bg-black">
           {/* History Header */}
@@ -157,7 +221,7 @@ useEffect(() => {
           <div className="flex-1 overflow-y-auto">
            {
             historyItems.map((item) => (
-              <HistoryCard key={item.id} item={item} />
+              <HistoryCard key={item.id} item={item}  />
             ))
            }
           </div>
@@ -170,25 +234,25 @@ useEffect(() => {
         <div className="flex-1 overflow-y-auto bg-black">
           {/* Header */}
  
-            <RecommendationHeader selectedFilter={selectedFilter} setSelectedFilter={setSelectedFilter} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+            <RecommendationHeader filterFunction={filterFunction} selectedFilter={selectedFilter} setSelectedFilter={setSelectedFilter} searchQuery={searchQuery} setSearchQuery={setSearchQuery} handleSearch={handleSearch} />
 
           {/* Recommendations Grid */}
           <div className="p-6">
-            <div className="max-w-5xl mx-auto space-y-6">
-              {recommendations.map((project) => (
-                <RecommendationCard key={project.id} project={project} bookmarkedProjects={bookmarkedProjects} toggleBookmark={toggleBookmark} getDifficultyColor={getDifficultyColor} />
+            {recommendations.length > 0 && <div className="max-w-5xl mx-auto space-y-6">
+              {recommendations?.map((project) => (
+                <RecommendationCard  key={project.id} project={project} bookmarkedProjects={bookmarkedProjects} toggleBookmark={toggleBookmark} getDifficultyColor={getDifficultyColor} />
               ))}
-            </div>
+            </div>}
 
-            {/* Load More */}
-            <div className="max-w-5xl mx-auto mt-8 text-center">
-              <button className="px-8 py-3 bg-gray-900 border border-gray-800 hover:border-purple-500 rounded-lg font-semibold transition-colors">
+          {/* Load More */}
+             {recommendations.length > 0 &&<div className="max-w-5xl mx-auto mt-8 text-center">
+              <button onClick={handleLoadMore} className="px-8 py-3 bg-gray-900 border border-gray-800 hover:border-purple-500 rounded-lg font-semibold transition-colors">
                 Load More Projects
               </button>
-            </div>
+            </div> }
           </div>
         </div>
-      </div>
+      </div>}
     </div>
   );
 }

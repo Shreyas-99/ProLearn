@@ -1,11 +1,18 @@
-import React from 'react'
+'use client'
+import React, { useEffect } from 'react'
 import {  Star,  CheckCircle,  } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 
 const HistoryCard = ({item}) => {
+  const router = useRouter();
+   useEffect(() => {
+    router.prefetch(`/projects/${item.id}`);
+  }, [item.id, router]);
+
   return (
     
-              <div
+              <div onClick={() => router.push(`/projects/${item.id}`)}
                
                 className="p-4 border-b border-gray-800 hover:bg-gray-900/50 transition-colors cursor-pointer group"
               >
@@ -13,7 +20,7 @@ const HistoryCard = ({item}) => {
                   <h3 className="font-semibold text-sm group-hover:text-purple-400 transition-colors">
                     {item.title}
                   </h3>
-                  {item.status === 'completed' ? (
+                  {item.isCompleted === 'completed' ? (
                     <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
                   ) : (
                     <div className="w-4 h-4 border-2 border-yellow-400 rounded-full flex-shrink-0" />
@@ -25,7 +32,7 @@ const HistoryCard = ({item}) => {
                 </div>
 
                 {/* Progress Bar */}
-                <div className="mb-2">
+                {/* <div className="mb-2">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs text-gray-400">Progress</span>
                     <span className="text-xs text-gray-400">{item.progress}%</span>
@@ -38,9 +45,9 @@ const HistoryCard = ({item}) => {
                       style={{ width: `${item.progress}%` }}
                     />
                   </div>
-                </div>
+                </div> */}
 
-                <div className="flex items-center justify-between">
+                { /* <div className="flex items-center justify-between">
                   <div className="flex gap-0.5">
                     {[...Array(5)].map((_, i) => (
                       <Star
@@ -54,7 +61,8 @@ const HistoryCard = ({item}) => {
                     ))}
                   </div>
                   <span className="text-xs text-gray-500">{item.date}</span>
-                </div>
+                </div> */}
+
               </div>
             
   )

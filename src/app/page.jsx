@@ -3,15 +3,17 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import connectDB from '@/app/lib/db.js';
 
-import { auth } from '@clerk/nextjs/server';
+
 
 export default async function LandingPage() {
   
+  await connectDB();
   const user = await currentUser();
-console.log("Current User on Landing Page:", user);
+// console.log("Current User on Landing Page:", user);-----
 
-//  const { userId } = auth();// not getting userId but the logic using in the navbar working properly
+//  const { userId } = auth();//   
         // console.log("User ID on Landing Page^^^^^^^^^^^^^:", userId);
 
 

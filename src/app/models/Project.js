@@ -7,7 +7,8 @@ const projectSchema = new mongoose.Schema({
   difficulty: { type: String, enum: ["beginner", "intermediate", "advanced"], default: "beginner" },
   whatYouLearn: [String],
   duration: String,
-  completed: { type: Boolean, default: false },
+  isCompleted: { type: Boolean, default: false },
+  isBookmarked: { type: Boolean, default: false },
 }, { timestamps: true });
 
 export default mongoose.models.Project || mongoose.model("Project", projectSchema);

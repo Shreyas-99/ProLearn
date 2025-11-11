@@ -7,7 +7,7 @@ const Navbar =  () => {
 
 
   const { user,isSignedIn } = useUser();
-  console.log("User in Navbar:::", user); 
+  // console.log("User in Navbar:::", user); 
 
  
  
