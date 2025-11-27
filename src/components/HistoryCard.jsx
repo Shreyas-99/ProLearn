@@ -6,9 +6,9 @@ import { useRouter } from 'next/navigation';
 
 const HistoryCard = ({item}) => {
   const router = useRouter();
-   useEffect(() => {
-    router.prefetch(`/projects/${item.id}`);
-  }, [item.id, router]);
+  //  useEffect(() => {
+  //   router.prefetch(`/projects/${item.id}`);
+  // }, [item.id, router]);
 
   return (
     
@@ -17,18 +17,29 @@ const HistoryCard = ({item}) => {
                 className="p-4 border-b border-gray-800 hover:bg-gray-900/50 transition-colors cursor-pointer group"
               >
                 <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-semibold text-sm group-hover:text-purple-400 transition-colors">
+                  <h3 className="font-semibold text-lg text-gray-50 group-hover:text-purple-400 transition-colors">
                     {item.title}
                   </h3>
-                  {item.isCompleted === 'completed' ? (
+                  {item.isCompleted === true ? (
                     <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
                   ) : (
                     <div className="w-4 h-4 border-2 border-yellow-400 rounded-full flex-shrink-0" />
                   )}
                 </div>
                 
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs text-gray-500">{item.tech}</span>
+                <div className="flex flex-wrap gap-2">
+                  {Array.isArray(item?.techStack) &&
+                    item.techStack.map((tech, index) => (
+                      <span
+                        key={index}
+                        className="px-2 py-[2px] rounded-full text-xs bg-gray-800 border border-gray-700 text-gray-300 
+                                   hover:bg-gray-700 transition-all font-normal"
+                      >
+                                  {tech}
+                                        </span>
+                                   ))
+                                }
+
                 </div>
 
                 {/* Progress Bar */}

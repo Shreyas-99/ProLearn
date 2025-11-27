@@ -34,6 +34,7 @@ export async function POST() {
 
     if (!existingUser) {
       // Create new user
+      
       const newUser = await User.create({
         clerkId: user.id,
         email: user.email_addresses[0].email_address,

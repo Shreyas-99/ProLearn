@@ -1,17 +1,56 @@
+'use client';
 import React from 'react'
 import { ArrowRight, Zap, BarChart3, Users, Sparkles, Github } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import BackButton from '@/components/BackButton';
+import Loading from './loading';
+import {getSingleProject} from '../../actions/projectActions'
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
+import {updateProjectStatus} from '../../actions/projectActions';
+
+export default  function ProjectPage({ params }) {
+ const { id } = useParams();
+  const [loading, setLoading] = useState(false);
+  const [project, setProject] = useState({})
+
+
+useEffect(() => {
+  setLoading(true);
+  async function fetchProductData(){
+    try {
+      const data=await getSingleProject(id);
+      setProject(data);
+      setLoading(false);
+      console.log("Project data:", data);
+  } catch (error) {
+    console.error("❌ Error fetching project data:", error);
+    setLoading(false);
+  }}
+  fetchProductData();
+
+console.log ("Project state:", project);
+
+}, [])
 
 
 
-export default async function ProjectPage() {
-  
-//   await connectDB();
+
+
  
-const toggleCompleted = () =>{
+const toggleCompleted =async () =>{
+  try {
+    const updatedStatus = !project.isCompleted;
+    const updatedProject = await updateProjectStatus(project.id, updatedStatus);
+    setProject(updatedProject);
+    console.log("✅ Project status updated:", updatedProject);
 
+    
+}catch (error) {
+    console.error("❌ Error updating project status:", error);
+
+}
 }
 
 
@@ -22,62 +61,135 @@ const difficultyColors = {
   };
     const classname=''
   return (
-    
-    <div className="min-h-screen bg-black text-white overflow-hidden">
- 
-      <Navbar  />
-        <div className="max-w-6xl mx-auto px-6 py-20">
-          <div ><BackButton classname={classname}/></div>
-         <div className='mt-4'>
-          <h1 className="text-4xl font-bold mb-3">Project Details</h1>
-          <div className="bg-gray-800 p-6 rounded-lg shadow-md">
-            <h2 className="text-2xl font-semibold mb-4">Project Name:</h2>
-            <p className="text-gray-400">Description:</p>
-            <div className="mt-4">
-              <span className="text-gray-400">Tech: </span>
-              <span className="text-white">tech</span>  
+  <div className="min-h-screen bg-black text-white overflow-hidden">
+    <Navbar />
+
+    {loading ? (
+      <Loading />
+    ) : (
+      <div className="max-w-5xl mx-auto px-6 py-16">
+
+        <BackButton classname={classname} />
+
+        <h1 className="text-4xl font-bold mt-6 mb-10 tracking-tight">
+          Project Details
+        </h1>
+
+        {/* Main Card */}
+        <div className="bg-[#0f172a] border border-gray-800 p-10 rounded-3xl shadow-[0_0_30px_rgba(0,0,0,0.4)]">
+
+          {/* Project Title */}
+          <h2 className="text-3xl font-semibold mb-4 text-gray-100">
+            {project?.title}
+          </h2>
+
+          {/* Description */}
+          <p className="text-gray-400 text-lg leading-relaxed mb-10">
+            {project?.description}
+          </p>
+
+          {/* Two column layout */}
+          <div className="grid md:grid-cols-2 gap-10">
+
+            {/* LEFT SIDE */}
+            <div className="space-y-6">
+
+              {/* Tech Stack */}
+              <div>
+                <h3 className="text-gray-300 text-lg font-semibold mb-3">Tech Stack</h3>
+                <div className="flex flex-wrap gap-2">
+
+                  {Array.isArray(project?.techStack) &&
+                    project.techStack.map((tech, index) => (
+                      <span
+                        key={index}
+                        className="px-3 py-1 rounded-full text-sm bg-gray-800 border border-gray-700 text-gray-200 
+                                   hover:bg-gray-700 transition-all font-medium shadow-sm"
+                      >
+                        {tech}
+                      </span>
+                    ))
+                  }
+
+                </div>
               </div>
-            <div className="mt-4">
-              <span className="text-gray-400">Difficulty: </span>
-              <span className={`font-semibold ${difficultyColors['beginner']}`}>beginner</span>
+
+              {/* Difficulty */}
+              <div>
+                <h3 className="text-gray-300 text-lg font-semibold mb-2">Difficulty</h3>
+                <p className={`text-xl font-bold ${difficultyColors[project?.difficulty]}`}>
+                  {project?.difficulty}
+                </p>
+              </div>
+
+              {/* Duration */}
+              <div>
+                <h3 className="text-gray-300 text-lg font-semibold mb-2">Duration</h3>
+                <p className="text-gray-100 text-lg">{project?.duration}</p>
+              </div>
+
+              {/* Status */}
+              <div>
+                <h3 className="text-gray-300 text-lg font-semibold mb-2">Status</h3>
+                <p
+                  className={`text-lg font-semibold ${
+                    project?.isCompleted ? "text-green-400" : "text-red-400"
+                  }`}
+                >
+                  {project?.isCompleted ? "Completed" : "Not Completed"}
+                </p>
+              </div>
+
             </div>
-            <div className="mt-4">
-              <span className="text-gray-400">What You Will Learn: </span>
-              <ul className="list-disc list-inside">
-                <li>point 1</li>
-                <li>point 2</li>  
+
+            {/* RIGHT SIDE - WHAT YOU WILL LEARN */}
+            <div>
+              <h3 className="text-gray-300 text-lg font-semibold mb-3">
+                What You Will Learn
+              </h3>
+
+              <ul className="space-y-3 pl-4 border-l border-gray-700">
+                {project?.whatYouLearn?.map((point, index) => (
+                  <li
+                    key={index}
+                    className="text-gray-300 text-base leading-relaxed"
+                  >
+                    • {point}
+                  </li>
+                ))}
               </ul>
             </div>
-            <div className="mt-4">
-              <span className="text-gray-400">Duration: </span>
-              <span className="text-white">duration</span>  
-            </div>
-            <div className="mt-4">   
-              <span className="text-gray-400">Status: </span>
-              <span className="text-white"> Completed</span>  
-            </div>
-            <div className="mt-6">
-            {0?  <button
-                // onClick={toggleCompleted}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
-              >
-                Mark as Completed
-              </button>:  <button
-                // onClick={toggleCompleted}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
+
+          </div>
+
+          {/* Button */}
+          <div className="mt-12">
+            {project?.isCompleted ? (
+              <button onClick={toggleCompleted}
+                className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 
+                           transition-all shadow-lg hover:shadow-blue-600/40 
+                           font-semibold text-white text-lg"
               >
                 Mark as Not Completed
               </button>
-            }
-            </div>
-          </div>
+            ) : (
+              <button onClick={toggleCompleted}
+                className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 
+                           transition-all shadow-lg hover:shadow-blue-600/40 
+                           font-semibold text-white text-lg"
+              >
+                Mark as Completed
+              </button>
+            )}
           </div>
 
         </div>
+      </div>
+    )}
+
+    <Footer />
+  </div>
+);
 
 
-         
-        <Footer />
-    </div>
-  );
 }

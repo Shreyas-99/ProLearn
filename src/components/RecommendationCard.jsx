@@ -1,7 +1,24 @@
 import React from 'react'
 import { Clock, Bookmark, Zap, Play, ChevronRight } from 'lucide-react';
 
-const RecommendationCard = ({filterFunction,project, toggleBookmark, bookmarkedProjects,getDifficultyColor}) => {
+const RecommendationCard = ({project, toggleBookmark, bookmarkedProjects,getDifficultyColor, historyItems, funcStratProject}) => {
+ 
+ 
+  const addToHistory = async () => {
+    try {
+      const response = await fetch('/api/history', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ projectId: project.id }),
+      });
+    } catch (error) {
+      console.error('Failed to add project to history:', error);
+    }
+  }
+
+
   return (
                 <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6 hover:border-purple-500/50 transition-all group">
                   {/* Project Header */}
@@ -72,9 +89,9 @@ const RecommendationCard = ({filterFunction,project, toggleBookmark, bookmarkedP
 
                   {/* Action Buttons */}
                   <div className="flex gap-3">
-                    <button  className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-semibold transition-all group/btn">
+                    <button onClick={() => funcStratProject(project)} className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-semibold transition-all group/btn">
                       <Play className="w-4 h-4" />
-                      <span>Start Project</span>
+                      <span >Start Project</span>
                       <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
                     </button>
                    

@@ -6,12 +6,11 @@ import { Clock, Bookmark, TrendingUp, Filter, Search, Star, ExternalLink, Chevro
 import HistoryFooter from '@/components/HistoryFooter';
 import HistoryCard from '@/components/HistoryCard';
 import RecommendationCard from '@/components/RecommendationCard';
-
 import { useUser } from '@clerk/nextjs';
 import RecommendationHeader from '@/components/RecommendationHeader';
 import { useRouter } from 'next/navigation';
-
-
+import { storeUserHistory,getUserHistory } from "../actions/historyActions";
+import {addProject} from '../actions/projectActions';
 
 
 export default  function page() {
@@ -21,18 +20,43 @@ export default  function page() {
   const [searchQuery, setSearchQuery] = useState('');
   const [bookmarkedProjects, setBookmarkedProjects] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
+  const [historyItems, setHistoryItems] = useState([])
+
+  
+  const  {isSignedIn,user,isLoaded}  = useUser();
   const router = useRouter();
 
-  const  {isSignedIn,user,isLoaded}  = useUser();
 
-
-
-  // console.log("User ID fetched in Home Page", user);// --------  working
+  console.log("User ID fetched in Home Page", user?.id);// --------  working
   if (isSignedIn) {
 
     console.log("user SIGNED IN");
   }
  
+  useEffect( () => {
+
+  async function fetchHistory() {
+    try{
+      const historyData = await getUserHistory(user?.id);
+      console.log("User History Data:", historyData);
+      if (historyData && historyData.length > 0) {
+       
+        const data = historyData.map(item => item.projectDetails);
+        console.log("Fetched Project Details:", data);
+
+        setHistoryItems(data);
+        
+      } else {
+        console.log("No history data found for this user.");
+      }
+  }catch (error) {
+    console.error("Error fetching history items:", error);
+  }
+}
+
+  fetchHistory();
+  
+  }, [user])
   
 
   const filterFunction = (filter) => {
@@ -58,9 +82,7 @@ export default  function page() {
     }
   }, [isSignedIn, router]);
 
-const [userOb, setuserOb] = useState('')
-
-
+  const [userOb, setuserOb] = useState(null);
 useEffect(() => {
     if (isLoaded && user) {
       setuserOb(user);
@@ -69,6 +91,34 @@ useEffect(() => {
 
 
 
+ const handleSearch = async () => {
+    const topic = searchQuery.trim();
+    if (!topic) return;
+
+    setLoading(true);
+    const res = await fetch("/api/project-recommendation", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ topic }),
+    });
+    const projects = await res.json();
+    console.log(" ROW Projects from API:", projects);
+
+    if (!Array.isArray(projects)) {
+  console.error("Error fetching projects:", projects.error || projects);
+  setLoading(false);
+  return;
+}
+
+    const data = projects.map(project => ({
+      ...project,
+      id: nanoid(13),
+    }));
+    console.log("Received Recommendations:", data);
+    setRecommendations(data);
+    setAllRecommendations(data);
+    setLoading(false);
+  };
 
 
 const handleLoadMore = async () => {
@@ -111,53 +161,6 @@ const handleLoadMore = async () => {
   };
 
   
- const handleSearch = async () => {
-    const topic = searchQuery.trim();
-    if (!topic) return;
-
-    setLoading(true);
-    const res = await fetch("/api/project-recommendation", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ topic }),
-    });
-    const projects = await res.json();
-    console.log(" ROW Projects from API:", projects);
-
-    if (!Array.isArray(projects)) {
-  console.error("Error fetching projects:", projects.error || projects);
-  setLoading(false);
-  return;
-}
-
-    const data = projects?.map(project => ({
-      ...project,
-      id: nanoid(12),
-    }));
-    console.log("Received Recommendations:", data);
-    setRecommendations(data);
-    setAllRecommendations(data);
-    setLoading(false);
-  };
-
-
-
-  const historyItems = [
-    { id: 1, title: "Weather Dashboard App", tech: "React, API", progress: 100, date: "2 days ago", rating: 5, isCompleted: true },
-  ];
-
-  // const recommendations = [
-  //   {
-  //     id: 1,
-  //     title: "Real-Time Chat Application",
-  //     description: "Build a modern chat app with WebSocket integration, user authentication, and real-time messaging capabilities. Learn about socket programming and state management.",
-  //     difficulty: "Intermediate",
-  //     duration: "4-6 weeks",
-  //     match: 98,
-  //     tags: ["React", "Socket.io", "Node.js", "MongoDB"],
-  //     learningPoints: ["WebSocket Protocol", "Real-time Data", "User Authentication"]
-  //   },
-  // ];
 
   const toggleBookmark = (projectId) => {
     setBookmarkedProjects(prev => 
@@ -167,10 +170,11 @@ const handleLoadMore = async () => {
     );
   };
 
-  const getDifficultyColor = (difficulty) => {
 
-   
+
+  const getDifficultyColor = (difficulty) => {
     switch(difficulty) {
+
       case 'Beginner': return 'text-green-400 bg-green-500/10 border-green-500/30';
       case 'Intermediate': return 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30';
       case 'Advanced': return 'text-red-400 bg-red-500/10 border-red-500/30';
@@ -179,9 +183,17 @@ const handleLoadMore = async () => {
   };
 
 
+const funcStratProject=async( project)=> {
+    console.log("Starting project:", project);
+    if (isSignedIn ) {
+      // Store user history
+      await storeUserHistory(user.id, project.id);
+      await addProject(project, user.id);
+    }
+    router.push(`/projects/${project.id}`);
 
 
- 
+  }
 
 
   return (
@@ -219,9 +231,9 @@ const handleLoadMore = async () => {
 
           {/* History List */}
           <div className="flex-1 overflow-y-auto">
-           {
-            historyItems.map((item) => (
-              <HistoryCard key={item.id} item={item}  />
+          {
+           ( historyItems.length>0)&&historyItems?.map((item) => (
+              <HistoryCard key={item.id} item={item} />
             ))
            }
           </div>
@@ -234,13 +246,26 @@ const handleLoadMore = async () => {
         <div className="flex-1 overflow-y-auto bg-black">
           {/* Header */}
  
-            <RecommendationHeader filterFunction={filterFunction} selectedFilter={selectedFilter} setSelectedFilter={setSelectedFilter} searchQuery={searchQuery} setSearchQuery={setSearchQuery} handleSearch={handleSearch} />
+            <RecommendationHeader filterFunction={filterFunction} 
+            selectedFilter={selectedFilter} 
+            setSelectedFilter={setSelectedFilter} 
+            searchQuery={searchQuery}
+             setSearchQuery={setSearchQuery}
+              handleSearch={handleSearch}
+               />
+
 
           {/* Recommendations Grid */}
           <div className="p-6">
             {recommendations.length > 0 && <div className="max-w-5xl mx-auto space-y-6">
               {recommendations?.map((project) => (
-                <RecommendationCard  key={project.id} project={project} bookmarkedProjects={bookmarkedProjects} toggleBookmark={toggleBookmark} getDifficultyColor={getDifficultyColor} />
+                <RecommendationCard  key={project.id}
+                 project={project} 
+                 bookmarkedProjects={bookmarkedProjects}
+                  toggleBookmark={toggleBookmark} 
+                  getDifficultyColor={getDifficultyColor}  
+                  funcStratProject={funcStratProject}
+                   />
               ))}
             </div>}
 

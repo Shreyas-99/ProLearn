@@ -18,10 +18,10 @@ export async function POST(req) {
 
     const prompt = `
    You are an expert project recommender.
-User wants to learn about "${topic}".
-Suggest 3 to 5 project ideas in **pure JSON only**.
-Do not include markdown, code blocks, or explanations.
-JSON array format:
+    User wants to learn about "${topic}".
+    Suggest 5 to 7 project ideas in **pure JSON only**.
+    Do not include markdown, code blocks, or explanations.
+    JSON array format:
 [
   {
     "title": "",
@@ -41,6 +41,7 @@ JSON array format:
     let jsonResponse;
     try {
       jsonResponse = JSON.parse(text);
+      
     } catch (e) {
       jsonResponse = { rawText: text, error: "Invalid JSON from Gemini" };
     }

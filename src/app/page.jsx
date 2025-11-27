@@ -19,7 +19,7 @@ export default async function LandingPage() {
 
   // console.log("Current User on Landing Page:", user);
   if (user) {
-    redirect('/home');
+    return redirect('/home');
   }
        
   return (
