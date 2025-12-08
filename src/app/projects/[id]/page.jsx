@@ -1,195 +1,359 @@
 'use client';
-import React from 'react'
-import { ArrowRight, Zap, BarChart3, Users, Sparkles, Github } from 'lucide-react';
+
+import React, { useEffect, useState } from 'react';
+import {
+  Zap,
+  Sparkles,
+  Github,
+  CheckCircle2,
+  Clock,
+  Target,
+  Lightbulb,
+} from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import BackButton from '@/components/BackButton';
-import Loading from './loading';
-import {getSingleProject} from '../../actions/projectActions'
-import { useEffect, useState } from 'react';
+import Loading from './Loading';
+import { getSingleProject, updateProjectStatus } from '../../actions/projectActions';
 import { useParams } from 'next/navigation';
-import {updateProjectStatus} from '../../actions/projectActions';
+import { motion } from 'framer-motion';
 
-export default  function ProjectPage({ params }) {
- const { id } = useParams();
+export default function ProjectPage() {
+  const { id } = useParams();
   const [loading, setLoading] = useState(false);
-  const [project, setProject] = useState({})
+  const [project, setProject] = useState(null);
 
+  useEffect(() => {
+    async function fetchProjectData() {
+      try {
+        setLoading(true);
+        const data = await getSingleProject(id);
+        setProject(data);
+      } catch (error) {
+        console.error('❌ Error fetching project data:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
 
-useEffect(() => {
-  setLoading(true);
-  async function fetchProductData(){
+    if (id) fetchProjectData();
+  }, [id]);
+
+  const toggleCompleted = async () => {
+    if (!project) return;
+
     try {
-      const data=await getSingleProject(id);
-      setProject(data);
-      setLoading(false);
-      console.log("Project data:", data);
-  } catch (error) {
-    console.error("❌ Error fetching project data:", error);
-    setLoading(false);
-  }}
-  fetchProductData();
-
-console.log ("Project state:", project);
-
-}, [])
-
-
-
-
-
- 
-const toggleCompleted =async () =>{
-  try {
-    const updatedStatus = !project.isCompleted;
-    const updatedProject = await updateProjectStatus(project.id, updatedStatus);
-    setProject(updatedProject);
-    console.log("✅ Project status updated:", updatedProject);
-
-    
-}catch (error) {
-    console.error("❌ Error updating project status:", error);
-
-}
-}
-
-
-const difficultyColors = {
-    beginner: "text-green-400",
-    intermediate: "text-yellow-400",
-    advanced: "text-red-400",
+      const updatedStatus = !project.isCompleted;
+      const updatedProject = await updateProjectStatus(project.id, updatedStatus);
+      setProject(updatedProject);
+      console.log('✅ Project status updated:', updatedProject);
+    } catch (error) {
+      console.error('❌ Error updating project status:', error);
+    }
   };
-    const classname=''
+
+  const difficultyColors = {
+    beginner: 'from-green-600 to-emerald-700',
+    intermediate: 'from-yellow-600 to-orange-600',
+    advanced: 'from-red-600 to-pink-600',
+  };
+
+  const difficultyIcons = {
+    beginner: '🌱',
+    intermediate: '⚡',
+    advanced: '🚀',
+  };
+
+  const difficulty = project?.difficulty?.toLowerCase?.() || 'beginner';
+  const difficultyColorClass =
+    difficultyColors[difficulty] || 'from-slate-600 to-slate-800';
+  const difficultyIcon = difficultyIcons[difficulty] || '✨';
+
+  const techStack = Array.isArray(project?.techStack) ? project.techStack : [];
+  const learnPoints = Array.isArray(project?.whatYouLearn)
+    ? project.whatYouLearn
+    : [];
+
   return (
-  <div className="min-h-screen bg-black text-white overflow-hidden">
-    <Navbar />
+    <div className="min-h-screen bg-black text-white flex flex-col">
+      <Navbar />
 
-    {loading ? (
-      <Loading />
-    ) : (
-      <div className="max-w-5xl mx-auto px-6 py-16">
+      {/* FIXED BACK BUTTON AT TOP-LEFT (in that red-marked area) */}
+      <motion.div
+        className="fixed left-4 top-16 z-30" // adjust top if it overlaps your navbar
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <BackButton />
+      </motion.div>
 
-        <BackButton classname={classname} />
+      {loading ? (
+        <div className="max-w-6xl mx-auto px-6 py-20 flex-1">
+          <Loading />
+        </div>
+      ) : !project && !loading? (
+        <div className="flex-1 flex justify-center items-center text-gray-400">
+          Failed to load project data.
+        </div>
+      ) : (
+        <main className="max-w-6xl mx-auto px-6 py-16 flex-1 w-full">
+          {/* Heading */}
+          <motion.div
+            className="mb-12 flex items-center gap-3"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            <motion.div
+              initial={{ rotate: -10, scale: 0.8 }}
+              animate={{ rotate: 0, scale: 1 }}
+              transition={{ type: 'spring', stiffness: 200, damping: 12 }}
+              className="p-2 rounded-2xl bg-purple-600/20 border border-purple-500/40"
+            >
+              <Sparkles className="text-purple-400" />
+            </motion.div>
+            <div>
+              <h1 className="text-4xl font-bold tracking-tight">Project Details</h1>
+              <p className="text-gray-400 text-sm mt-1">
+                Explore the overview, stack, and learning outcomes of this project.
+              </p>
+            </div>
+          </motion.div>
 
-        <h1 className="text-4xl font-bold mt-6 mb-10 tracking-tight">
-          Project Details
-        </h1>
+          {/* MAIN CONTAINER WITH COLOR + ANIMATIONS */}
+          <motion.div
+            initial={{ opacity: 0, y: 30, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            whileHover={{ translateY: -4 }}
+            className="relative bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 border border-gray-700/80 p-10 rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.8)] overflow-hidden"
+          >
+            {/* Subtle glow line at top */}
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: '100%' }}
+              transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
+              className="pointer-events-none absolute top-0 left-0 h-px w-full bg-gradient-to-r from-transparent via-purple-400/70 to-transparent"
+            />
 
-        {/* Main Card */}
-        <div className="bg-[#0f172a] border border-gray-800 p-10 rounded-3xl shadow-[0_0_30px_rgba(0,0,0,0.4)]">
+            {/* STATUS BADGE */}
+            <motion.div
+              className="flex justify-end mb-4"
+              initial={{ opacity: 0, scale: 0.9, y: -10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+            >
+              <div
+                className={`px-4 py-2 rounded-full flex items-center gap-2 text-sm font-semibold border backdrop-blur-sm ${
+                  project.isCompleted
+                    ? 'bg-green-500/15 border-green-500/70 text-green-300'
+                    : 'bg-orange-500/15 border-orange-500/70 text-orange-300'
+                }`}
+              >
+                {project.isCompleted ? <CheckCircle2 size={18} /> : <Clock size={18} />}
+                {project.isCompleted ? 'Completed' : 'In Progress'}
+              </div>
+            </motion.div>
 
-          {/* Project Title */}
-          <h2 className="text-3xl font-semibold mb-4 text-gray-100">
-            {project?.title}
-          </h2>
+            {/* TITLE */}
+            <motion.h2
+              className="text-3xl md:text-4xl font-bold mb-4 text-white"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.45, delay: 0.25 }}
+            >
+              {project.title}
+            </motion.h2>
 
-          {/* Description */}
-          <p className="text-gray-400 text-lg leading-relaxed mb-10">
-            {project?.description}
-          </p>
+            {/* DESCRIPTION */}
+            <motion.p
+              className="text-gray-300 leading-relaxed mb-10 text-base md:text-lg"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.35 }}
+            >
+              {project.description}
+            </motion.p>
 
-          {/* Two column layout */}
-          <div className="grid md:grid-cols-2 gap-10">
+            {/* GRID CARDS */}
+            <div className="grid md:grid-cols-3 gap-6 mb-10">
+              {/* DIFFICULTY */}
+              <motion.div
+                className="bg-gray-900/80 p-6 border border-gray-700 rounded-2xl shadow-lg"
+                initial={{ opacity: 0, y: 25 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.3 }}
+                whileHover={{ y: -6, scale: 1.02 }}
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <Target className="text-purple-400" />
+                  <h3 className="font-semibold text-gray-200 text-lg">Difficulty</h3>
+                </div>
 
-            {/* LEFT SIDE */}
-            <div className="space-y-6">
+                <motion.div
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r ${difficultyColorClass} text-white font-bold shadow-md`}
+                  whileHover={{ scale: 1.05 }}
+                >
+                  <span>{difficultyIcon}</span>
+                  <span className="capitalize">{difficulty}</span>
+                </motion.div>
+              </motion.div>
 
-              {/* Tech Stack */}
-              <div>
-                <h3 className="text-gray-300 text-lg font-semibold mb-3">Tech Stack</h3>
-                <div className="flex flex-wrap gap-2">
+              {/* DURATION */}
+              <motion.div
+                className="bg-gray-900/80 p-6 border border-gray-700 rounded-2xl shadow-lg"
+                initial={{ opacity: 0, y: 25 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.35 }}
+                whileHover={{ y: -6, scale: 1.02 }}
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <Clock className="text-blue-400" />
+                  <h3 className="font-semibold text-gray-200 text-lg">Duration</h3>
+                </div>
+                <motion.p
+                  className="text-white text-2xl font-bold"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.4, delay: 0.45 }}
+                >
+                  {project.duration}
+                </motion.p>
+              </motion.div>
 
-                  {Array.isArray(project?.techStack) &&
-                    project.techStack.map((tech, index) => (
-                      <span
-                        key={index}
-                        className="px-3 py-1 rounded-full text-sm bg-gray-800 border border-gray-700 text-gray-200 
-                                   hover:bg-gray-700 transition-all font-medium shadow-sm"
+              {/* TECHNOLOGIES */}
+              <motion.div
+                className="bg-gray-900/80 p-6 border border-gray-700 rounded-2xl shadow-lg"
+                initial={{ opacity: 0, y: 25 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.4 }}
+                whileHover={{ y: -6, scale: 1.02 }}
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <Zap className="text-yellow-400" />
+                  <h3 className="font-semibold text-gray-200 text-lg">Technologies</h3>
+                </div>
+                <motion.p
+                  className="text-white text-2xl font-bold"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.4, delay: 0.5 }}
+                >
+                  {techStack.length} Tool{techStack.length === 1 ? '' : 's'}
+                </motion.p>
+              </motion.div>
+            </div>
+
+            {/* TWO COLUMN SECTION */}
+            <div className="grid md:grid-cols-2 gap-10">
+              {/* TECH STACK */}
+              <motion.div
+                initial={{ opacity: 0, x: -25 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.45 }}
+              >
+                <h3 className="flex items-center gap-3 text-xl font-bold text-white mb-4">
+                  <Github className="text-purple-400" />
+                  Tech Stack
+                </h3>
+
+                {techStack.length === 0 ? (
+                  <p className="text-gray-400 text-sm">
+                    No technologies added yet for this project.
+                  </p>
+                ) : (
+                  <div className="flex flex-wrap gap-3">
+                    {techStack.map((tech, idx) => (
+                      <motion.span
+                        key={idx}
+                        className="px-4 py-2 bg-purple-900/50 border border-purple-500/40 text-purple-100 rounded-xl text-sm font-semibold shadow-sm"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.25, delay: 0.5 + idx * 0.05 }}
+                        whileHover={{ y: -3, scale: 1.05 }}
                       >
                         {tech}
-                      </span>
-                    ))
-                  }
+                      </motion.span>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
 
-                </div>
-              </div>
+              {/* WHAT YOU WILL LEARN */}
+              <motion.div
+                initial={{ opacity: 0, x: 25 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.5 }}
+              >
+                <h3 className="flex items-center gap-3 text-xl font-bold text-white mb-4">
+                  <Lightbulb className="text-yellow-400" />
+                  What You Will Learn
+                </h3>
 
-              {/* Difficulty */}
-              <div>
-                <h3 className="text-gray-300 text-lg font-semibold mb-2">Difficulty</h3>
-                <p className={`text-xl font-bold ${difficultyColors[project?.difficulty]}`}>
-                  {project?.difficulty}
-                </p>
-              </div>
-
-              {/* Duration */}
-              <div>
-                <h3 className="text-gray-300 text-lg font-semibold mb-2">Duration</h3>
-                <p className="text-gray-100 text-lg">{project?.duration}</p>
-              </div>
-
-              {/* Status */}
-              <div>
-                <h3 className="text-gray-300 text-lg font-semibold mb-2">Status</h3>
-                <p
-                  className={`text-lg font-semibold ${
-                    project?.isCompleted ? "text-green-400" : "text-red-400"
-                  }`}
-                >
-                  {project?.isCompleted ? "Completed" : "Not Completed"}
-                </p>
-              </div>
-
+                {learnPoints.length === 0 ? (
+                  <p className="text-gray-400 text-sm">
+                    Learning outcomes will be added soon.
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {learnPoints.map((point, idx) => (
+                      <motion.div
+                        key={idx}
+                        className="flex items-start gap-3 p-3.5 bg-gray-800/60 border-l-2 border-blue-500 rounded-lg"
+                        initial={{ opacity: 0, x: 15 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, delay: 0. + idx * 0.06 }}
+                        whileHover={{ x: 4 }}
+                      >
+                        <CheckCircle2
+                          className="text-blue-400 mt-1 flex-shrink-0"
+                          size={18}
+                        />
+                        <p className="text-gray-200 text-sm md:text-base">
+                          {point}
+                        </p>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
             </div>
 
-            {/* RIGHT SIDE - WHAT YOU WILL LEARN */}
-            <div>
-              <h3 className="text-gray-300 text-lg font-semibold mb-3">
-                What You Will Learn
-              </h3>
-
-              <ul className="space-y-3 pl-4 border-l border-gray-700">
-                {project?.whatYouLearn?.map((point, index) => (
-                  <li
-                    key={index}
-                    className="text-gray-300 text-base leading-relaxed"
-                  >
-                    • {point}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-          </div>
-
-          {/* Button */}
-          <div className="mt-12">
-            {project?.isCompleted ? (
-              <button onClick={toggleCompleted}
-                className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 
-                           transition-all shadow-lg hover:shadow-blue-600/40 
-                           font-semibold text-white text-lg"
+            {/* ACTION BUTTON */}
+            <motion.div
+              className="mt-12"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45, delay: 0.65 }}
+            >
+              <motion.button
+                onClick={toggleCompleted}
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.96 }}
+                className={`relative px-8 py-4 rounded-xl font-bold text-lg shadow-xl overflow-hidden ${
+                  project.isCompleted
+                    ? 'bg-gradient-to-r from-orange-600 to-red-600'
+                    : 'bg-gradient-to-r from-green-600 to-emerald-600'
+                }`}
               >
-                Mark as Not Completed
-              </button>
-            ) : (
-              <button onClick={toggleCompleted}
-                className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 
-                           transition-all shadow-lg hover:shadow-blue-600/40 
-                           font-semibold text-white text-lg"
-              >
-                Mark as Completed
-              </button>
-            )}
-          </div>
+                <motion.span
+                  className="absolute inset-0 bg-white/20"
+                  initial={{ x: '-120%' }}
+                  whileHover={{ x: '120%' }}
+                  transition={{ duration: 0.6, ease: 'easeOut' }}
+                />
+                <span className="relative z-10">
+                  {project.isCompleted ? 'Mark as Not Completed' : 'Mark as Completed'}
+                </span>
+              </motion.button>
+            </motion.div>
+            
+          </motion.div>
+        </main>
+      )}
 
-        </div>
-      </div>
-    )}
-
-    <Footer />
-  </div>
-);
-
-
+      <Footer />
+    </div>
+  );
 }

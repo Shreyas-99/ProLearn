@@ -29,12 +29,8 @@ const Navbar =  () => {
           </div>:<></>}
           <div className='flex gap-1.5'>
             <SignedOut>
-              <SignInButton className="bg-[#6c47ff] text-ceramic-white rounded-full font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 cursor-pointer " />
-             {user||<SignUpButton>
-                <button className="bg-[#6c47ff] text-ceramic-white rounded-full font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 cursor-pointer">
-                  Sign Up
-                </button>
-              </SignUpButton>}
+              <SignInButton  mode="modal" className="bg-[#6c47ff] text-ceramic-white rounded-full font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 cursor-pointer " />
+             
             </SignedOut>
             <SignedIn>
               <UserButton />

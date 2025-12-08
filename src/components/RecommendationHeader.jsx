@@ -29,10 +29,7 @@ const RecommendationHeader = ({ filterFunction, selectedFilter, setSelectedFilte
                   <Search className="w-5 h-5" />
                   <span>Search</span>
                 </button>
-                <button className="flex items-center gap-2 px-6 py-3 bg-gray-900 border border-gray-800 rounded-lg hover:border-purple-500 transition-colors">
-                  <Filter className="w-5 h-5" />
-                  <span>Filter</span>
-                </button>
+ 
               </div>
 
               {/* Filter Tabs */}

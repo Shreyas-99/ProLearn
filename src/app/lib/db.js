@@ -8,7 +8,7 @@ const connectDB=async ()=>{
        console.log(connectionInstance.connection.host);       
     } catch (error) {
         console.log("Error while connecting with db (debug in db.js file)",error);
-        process.exit(1);
+        
     }
 }
 export default connectDB
