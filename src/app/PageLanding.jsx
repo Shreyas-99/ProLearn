@@ -7,9 +7,11 @@ import { motion } from "framer-motion";
 import { ArrowRight, Zap, BarChart3, Users } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+  import { SignInButton } from '@clerk/nextjs';
 
 export default function LandingPageClient() {
   const { user, isLoaded } = useUser();
+
 
   
 
@@ -318,10 +320,14 @@ return (
     <section className="py-20 px-6 border-t border-gray-900">
       <div className="max-w-2xl mx-auto text-center">
         <h2 className="text-4xl font-bold mb-6">Ready to Start Learning?</h2>
+
         <p className="text-gray-500 mb-8 text-lg">Join thousands of developers mastering skills through real-world projects.</p>
-        <button className="bg-white text-black px-10 py-4 rounded-lg font-semibold text-lg hover:bg-gray-200 transition transform hover:scale-105">
-          Start Your Learning Journey
-        </button>
+        
+        <SignInButton>
+          <button className="bg-white text-black px-10 py-4 rounded-lg font-semibold text-lg hover:bg-gray-200 transition transform hover:scale-105">
+            Start Your Learning Journey
+          </button>
+        </SignInButton>
       </div>
     </section>
 

@@ -38,6 +38,7 @@ export default function page() {
   useEffect(() => {
 
     async function fetchHistory() {
+      if (!isLoaded || !isSignedIn || !user?.id) return;
       try {
         const historyData = await getUserHistory(user?.id);
         console.log("User History Data:", historyData);
@@ -58,7 +59,7 @@ export default function page() {
 
     fetchHistory();
 
-  }, [user])
+  }, [isLoaded, isSignedIn, user?.id])
 
 
   const filterFunction = (filter) => {
@@ -76,25 +77,25 @@ export default function page() {
     }
   };
 
-  useEffect(() => {
-    if (isSignedIn) {
-      // Sync the user to your MongoDB after successful sign-in
-      fetch("api/users/sync", { method: "POST" });
-      // redirect manually as backup
-    }
-  }, [isSignedIn, router]);
+useEffect(() => {
+  if (!isLoaded) return;
+  if (!isSignedIn) return;
+
+  fetch("/api/users/sync", { method: "POST" });
+}, [isLoaded, isSignedIn]);
+
 
   const [userOb, setuserOb] = useState(null);
 
 
- useEffect(() => {
-  if (!isLoaded) return;      
+useEffect(() => {
+  if (!isLoaded) return; // wait until Clerk is ready
+
   if (!isSignedIn) {
-    router.replace("/");       
-  } else {
-    setuserOb(user);           
+    router.replace("/"); // go to landing page when logged out
   }
-}, [isLoaded, isSignedIn, user]);
+}, [isLoaded, isSignedIn, router]);
+
 
 
 

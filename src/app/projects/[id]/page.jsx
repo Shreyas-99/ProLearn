@@ -333,7 +333,7 @@ export default function ProjectPage() {
                 whileTap={{ scale: 0.96 }}
                 className={`relative px-8 py-4 rounded-xl font-bold text-lg shadow-xl overflow-hidden ${
                   project.isCompleted
-                    ? 'bg-gradient-to-r from-orange-600 to-red-600'
+                    ? 'bg-gradient-to-r from-red-600 to-red-600'
                     : 'bg-gradient-to-r from-green-600 to-emerald-600'
                 }`}
               >

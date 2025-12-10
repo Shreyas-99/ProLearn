@@ -10,37 +10,37 @@ import BackButton from '@/components/BackButton';
 const BookmarkedProjects = () => {
   const router = useRouter();
   const [bookmarkedProjects, setBookmarkedProjects] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    fetchBookmarkedProjects();
-  }, []);
+  // useEffect(() => {
+  //   fetchBookmarkedProjects();
+  // }, []);
 
-  const fetchBookmarkedProjects = async () => {
-    try {
-      setLoading(true);
+  // const fetchBookmarkedProjects = async () => {
+  //   try {
+  //     setLoading(true);
     //   const response = await fetch('/api/bookmarks');
     //   const data = await response.json();
     //   setBookmarkedProjects(data.projects || []);
     // } catch (error) {
       // console.error('Failed to fetch bookmarked projects:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
-  const toggleBookmark = async (projectId) => {
-    try {
-      await fetch('/api/bookmarks', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ projectId }),
-      });
-      setBookmarkedProjects(prev => prev.filter(p => p.id !== projectId));
-    } catch (error) {
-      console.error('Failed to remove bookmark:', error);
-    }
-  };
+  // const toggleBookmark = async (projectId) => {
+  //   try {
+  //     await fetch('/api/bookmarks', {
+  //       method: 'DELETE',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({ projectId }),
+  //     });
+  //     setBookmarkedProjects(prev => prev.filter(p => p.id !== projectId));
+  //   } catch (error) {
+  //     console.error('Failed to remove bookmark:', error);
+  //   }
+  // };
 
   const getDifficultyColor = (difficulty) => {
     const colors = {
