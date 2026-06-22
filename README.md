@@ -35,3 +35,116 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 # ProLearn
+
+## 11-------------------------------------------------------------------------
+trigger:
+- release-pipeline
+
+pool:
+  name: Default
+
+stages:
+
+# ---------- BUILD STAGE ----------
+- stage: Build
+  displayName: Build Application
+
+  jobs:
+  - job: BuildJob
+
+    steps:
+
+    - task: Maven@3
+      inputs:
+        mavenPomFile: 'AzurePipeline/pom.xml'
+        goals: 'clean install'
+        publishJUnitResults: true
+        testResultsFiles: '**/surefire-reports/TEST-*.xml'
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: 'AzurePipeline/target'
+        ArtifactName: 'app-artifact'
+
+# ---------- DEPLOY STAGE ----------
+- stage: Deploy
+  displayName: Deploy Application
+  dependsOn: Build
+  condition: succeeded()
+
+  jobs:
+  - job: DeployJob
+
+    steps:
+
+    - task: DownloadBuildArtifacts@0
+      displayName: Download Artifact
+      inputs:
+        buildType: 'current'
+        downloadType: 'single'
+        artifactName: 'app-artifact'
+        downloadPath: '$(System.ArtifactsDirectory)'
+
+    - script: |
+        echo "Deploying application..."
+        ls $(System.ArtifactsDirectory)
+      displayName: Deploy Step
+
+ ##    ---------------------------------------------------------------------------------------------------------------------------------- 
+
+ ## 12-----------------------------------
+trigger:
+- master
+
+pool:
+  name: Default
+
+stages:
+
+# ---------- BUILD STAGE ----------
+- stage: Build
+  displayName: Build Application
+
+  jobs:
+  - job: BuildJob
+
+    steps:
+
+    - task: Maven@3
+      inputs:
+        mavenPomFile: 'CICD/pom.xml'
+        goals: 'clean install'
+        publishJUnitResults: true
+        testResultsFiles: '**/surefire-reports/TEST-*.xml'
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: 'CICD/target'
+        ArtifactName: 'app-artifact'
+
+# ---------- DEPLOY STAGE ----------
+- stage: Deploy
+  displayName: Deploy Application
+  dependsOn: Build
+  condition: succeeded()
+
+  jobs:
+  - job: DeployJob
+
+    steps:
+
+    - task: DownloadBuildArtifacts@0
+      displayName: Download Artifact
+      inputs:
+        buildType: 'current'
+        downloadType: 'single'
+        artifactName: 'app-artifact'
+        downloadPath: '$(System.ArtifactsDirectory)'
+
+    - script: |
+        echo "Deploying application..."
+        cp $(System.ArtifactsDirectory)/app-artifact/*.jar /tmp
+      displayName: Deploy Step
+
+
+      ##-----------------------------------------------------------------------
